@@ -3,6 +3,12 @@
 set -e
 
 prepare() {
+    github_token=${GITHUB_TOKEN}
+    if [[ -z ${github_token} ]]; then
+        read -p "GITHUB_TOKEN (paste here)> " github_token
+    fi
+    export GITHUB_TOKEN=${github_token}
+
     for command in git gobump goreleaser
     do
         if ! type "${command}" &>/dev/null; then
