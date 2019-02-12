@@ -64,7 +64,7 @@ main() {
         shift
     done
 
-    if type git-chglog &>/dev/null; then
+    if [[ -d .chglog ]] && type git-chglog &>/dev/null; then
         git-chglog -o CHANGELOG.md --next-tag "v${next_version}"
         git --no-pager diff
     fi
