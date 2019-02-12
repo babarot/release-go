@@ -2,5 +2,8 @@ release-go
 ==========
 
 ```console
-$ curl -sL https://git.io/release-go | bash
+$ bash <(curl -sL https://git.io/release-go)
+```
+```console
+$ bash <(wget -o /dev/null -qO - https://git.io/release-go)
 ```
