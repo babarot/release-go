@@ -3,7 +3,7 @@
 set -e
 
 prepare() {
-    for command in git git-chglog gobump goreleaser
+    for command in git gobump goreleaser
     do
         if ! type "${command}" &>/dev/null; then
             echo "[ERROR] ${command} not found" >&2
@@ -64,8 +64,10 @@ main() {
         shift
     done
 
-    git-chglog -o CHANGELOG.md --next-tag "v${next_version}"
-    git --no-pager diff
+    if type git-chglog &>/dev/null; then
+        git-chglog -o CHANGELOG.md --next-tag "v${next_version}"
+        git --no-pager diff
+    fi
 
     ask "OK to commit/push these changes?" || return 1
     git commit -am "Bump version ${next_version} and update changelog"
@@ -73,7 +75,11 @@ main() {
     git push
 
     ask "OK to release?" || return 1
-    goreleaser --release-notes CHANGELOG.md --rm-dist
+    if [[ -f CHANGELOG.md ]]; then
+        goreleaser --release-notes CHANGELOG.md --rm-dist
+    else
+        goreleaser --rm-dist
+    fi
 }
 
 main "${@}"
