@@ -6,8 +6,8 @@ prepare() {
     github_token=${GITHUB_TOKEN}
     if [[ -z ${github_token} ]]; then
         read -p "GITHUB_TOKEN (paste here)> " github_token
+        export GITHUB_TOKEN=${github_token}
     fi
-    export GITHUB_TOKEN=${github_token}
 
     for command in git gobump goreleaser
     do
@@ -16,6 +16,16 @@ prepare() {
             return 1
         fi
     done
+
+    if [[ ! -d .git ]]; then
+        echo "[ERROR] .git: not found in ${PWD}" >&2
+        return 1
+    fi
+
+    if [[ -n "$(git status -s)" ]]; then
+        echo "[ERROR] there are untracked or unstaged files" >&2
+        return 1
+    fi
 }
 
 ask() {
@@ -40,11 +50,6 @@ ask() {
 
 main() {
     prepare || return 1
-
-    if [[ -n "$(git status -s)" ]]; then
-        echo "[ERROR] there are untracked or unstaged files" >&2
-        return 1
-    fi
 
     current_version="$(gobump show -r)"
     echo "[INFO] current version: ${current_version}"
@@ -73,9 +78,9 @@ main() {
     if [[ -d .chglog ]] && type git-chglog &>/dev/null; then
         git-chglog -o CHANGELOG.md --next-tag "v${next_version}"
         git --no-pager diff
+        ask "OK to commit/push these changes?" || return 1
     fi
 
-    ask "OK to commit/push these changes?" || return 1
     git commit -am "Bump version ${next_version} and update changelog"
     git tag "v${next_version}"
     git push
