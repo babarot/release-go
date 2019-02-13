@@ -3,6 +3,13 @@
 set -e
 
 prepare() {
+    if [[ -p /dev/stdin ]]; then
+        echo "[ERROR] Use 'bash <(wget ...)' instead of 'wget ... | bash'" >&2
+        echo "[ERROR] e.g. 'bash <(curl -sL https://git.io/release-go)'" >&2
+        echo "[ERROR] e.g. 'bash <(wget -o /dev/null -qO - https://git.io/release-go)'" >&2
+        return 1
+    fi
+
     github_token=${GITHUB_TOKEN}
     if [[ -z ${github_token} ]]; then
         read -p "GITHUB_TOKEN (paste here)> " github_token
@@ -42,7 +49,7 @@ ask() {
                 return 1
                 ;;
             *)
-                echo "[ERROR] Invalid input...again"
+                echo "[ERROR] Invalid input...again" >&2
                 ;;
         esac
     done
@@ -82,12 +89,12 @@ main() {
     fi
 
     git commit -am "Bump version ${next_version} and update changelog"
-    git tag "v${next_version}"
     git push
 
     ask "OK to release?" || return 1
+    git tag "v${next_version}"
     if [[ -f CHANGELOG.md ]]; then
-        goreleaser --release-notes CHANGELOG.md --rm-dist
+        goreleaser --rm-dist --release-notes CHANGELOG.md
     else
         goreleaser --rm-dist
     fi
