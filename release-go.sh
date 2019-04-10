@@ -58,7 +58,7 @@ ask() {
 main() {
     prepare || return 1
 
-    current_version="$(gobump show -r)"
+    current_version="$(gobump show -r ${VERSION_DIR})"
     echo "[INFO] current version: ${current_version}"
 
     while true
