@@ -58,6 +58,11 @@ ask() {
 main() {
     prepare || return 1
 
+    if ! gobump show -r ${VERSION_DIR} &>/dev/null; then
+        echo "[ERROR] no version data found" >&2
+        return 1
+    fi
+
     current_version="$(gobump show -r ${VERSION_DIR})"
     echo "[INFO] current version: ${current_version}"
 
@@ -66,8 +71,8 @@ main() {
         read -p "Specify [major | minor | patch]: " version
         case "${version}" in
             major | minor | patch )
-                gobump "${version}" -w
-                next_version="$(gobump show -r)"
+                gobump "${version}" -w ${VERSION_DIR}
+                next_version="$(gobump show -r ${VERSION_DIR})"
                 break
                 ;;
             "")
