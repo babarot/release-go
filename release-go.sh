@@ -10,16 +10,11 @@ prepare() {
         return 1
     fi
 
-    github_token=${GITHUB_TOKEN}
-    if [[ -z ${github_token} ]]; then
-        read -p "GITHUB_TOKEN (paste here)> " github_token
-        export GITHUB_TOKEN=${github_token}
-    fi
-
-    for command in git gobump goreleaser
+    local tool
+    for tool in git gobump goreleaser
     do
-        if ! type "${command}" &>/dev/null; then
-            echo "[ERROR] ${command} not found" >&2
+        if ! type "${tool}" &>/dev/null; then
+            echo "[ERROR] ${tool} not found" >&2
             return 1
         fi
     done
@@ -32,6 +27,22 @@ prepare() {
     if [[ -n "$(git status -s)" ]]; then
         echo "[ERROR] there are untracked or unstaged files" >&2
         return 1
+    fi
+
+    local github_token
+    github_token=${GITHUB_TOKEN}
+    if [[ -z ${github_token} ]]; then
+        read -p "GITHUB_TOKEN (paste here)> " github_token
+        export GITHUB_TOKEN=${github_token}
+    fi
+
+    if ! gobump show -r ${VERSION_DIR} &>/dev/null; then
+      local version_dir
+      version_dir=${VERSION_DIR}
+      if [[ -z ${version_dir} ]]; then
+        read -p "Specify dir where the file that version info is written is located> " version_dir
+        export VERSION_DIR=${version_dir}
+      fi
     fi
 }
 
@@ -57,11 +68,6 @@ ask() {
 
 main() {
     prepare || return 1
-
-    if ! gobump show -r ${VERSION_DIR} &>/dev/null; then
-        echo "[ERROR] no version data found" >&2
-        return 1
-    fi
 
     current_version="$(gobump show -r ${VERSION_DIR})"
     echo "[INFO] current version: ${current_version}"
