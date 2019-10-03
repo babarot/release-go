@@ -19,8 +19,8 @@ prepare() {
         fi
     done
 
-    if [[ ! -d .git ]]; then
-        echo "[ERROR] .git: not found in ${PWD}" >&2
+    if ! err="$(git rev-parse --is-inside-work-tree 2>&1)"; then
+        echo "[ERROR] ${err}" >&2
         return 1
     fi
 
